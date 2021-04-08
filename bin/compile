@@ -17,17 +17,21 @@ if [ ! -f "${ENV_DIR}/APP_BASE" ]; then
     exit 1
 fi
 APP_BASE="$(cat "${ENV_DIR}/APP_BASE")"
+if [ -f "${ENV_DIR}/APP_COMMONS" ]; then APP_COMMONS="$(cat "${ENV_DIR}/APP_COMMONS")"; fi
+COMMON_PATHS=(${APP_COMMONS//;/ })
 
 (
     mv "${BUILD_DIR}/${APP_BASE}" "${STAGE}" &&
+    (for PATH in "${COMMON_PATHS[@]}"; do mv "${BUILD_DIR}/${PATH}" "${STAGE}/${APP_BASE}"; done) &&
     rm -rf "${BUILD_DIR}"/* &&
     mv "${STAGE}/$(basename "$APP_BASE")"/* "${BUILD_DIR}"
 )
 
 if [ $? -ne 0 ]; then
-    echo "FAILED to copy directory into place" | indent
+    echo "FAILED to copy directories/files into place" | indent
     exit 1
 fi
 
 echo "Copied ${APP_BASE} to root of app successfully" | indent
+echo "Copied common dirs & files ${APP_COMMONS} inside the ${APP_BASE} directory successfully" | indent
 
